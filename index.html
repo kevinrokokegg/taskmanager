@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TaskManager | Gestor de tareas</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>TaskManager</h1>
+        <p>Organiza tus tareas y controla tu progreso.</p>
+    </header>
+
+    <main>
+        <section aria-labelledby="titulo-formulario">
+            <h2 id="titulo-formulario">Nueva tarea</h2>
+
+            <form id="formulario-tarea" novalidate>
+                <label for="titulo-tarea">Título de la tarea</label>
+                <input
+                    type="text"
+                    id="titulo-tarea"
+                    name="titulo"
+                    placeholder="Ejemplo: estudiar JavaScript"
+                    required
+                >
+
+                <label for="prioridad-tarea">Prioridad</label>
+                <select id="prioridad-tarea" name="prioridad">
+                    <option value="alta">Alta</option>
+                    <option value="media" selected>Media</option>
+                    <option value="baja">Baja</option>
+                </select>
+
+                <button type="submit">Agregar tarea</button>
+            </form>
+
+            <p id="mensaje" role="status"></p>
+        </section>
+
+        <section aria-labelledby="titulo-lista">
+            <h2 id="titulo-lista">Mis tareas</h2>
+            <ul id="lista-tareas"></ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>Desarrollado por Kevin Herrera</p>
+    </footer>
+</body>
+</html>
