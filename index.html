@@ -44,6 +44,27 @@
 
         <section aria-labelledby="titulo-lista">
             <h2 id="titulo-lista">Mis tareas</h2>
+
+            <div class="controles">
+                <div>
+                    <label for="buscar-tarea">Buscar por título</label>
+                    <input
+                        type="search"
+                        id="buscar-tarea"
+                        placeholder="Escribe para buscar..."
+                    >
+                </div>
+
+                <div>
+                    <label for="filtro-estado">Filtrar por estado</label>
+                    <select id="filtro-estado">
+                        <option value="todas">Todas</option>
+                        <option value="pendientes">Pendientes</option>
+                        <option value="completadas">Completadas</option>
+                    </select>
+                </div>
+            </div>
+
             <ul id="lista-tareas"></ul>
         </section>
     </main>

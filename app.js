@@ -7,31 +7,31 @@ const mensaje = document.getElementById("mensaje");
 const tituloFormulario = document.getElementById("titulo-formulario");
 const botonGuardar = formulario.querySelector('button[type="submit"]');
 
+// Controles de búsqueda y filtro.
+const campoBusqueda = document.getElementById("buscar-tarea");
+const filtroEstado = document.getElementById("filtro-estado");
+
 const botonCancelar = document.createElement("button");
 botonCancelar.type = "button";
 botonCancelar.textContent = "Cancelar edición";
 botonCancelar.hidden = true;
 formulario.appendChild(botonCancelar);
 
-// Nombre con el que guardaremos los datos en el navegador.
 const CLAVE_STORAGE = "taskmanager_tareas";
 
 let tareas = [];
 let idEnEdicion = null;
 
-// Recupera las tareas al abrir la página.
 function cargarTareas() {
     try {
         const datos = localStorage.getItem(CLAVE_STORAGE);
 
-        // null significa que todavía no hay datos guardados.
         if (datos === null) {
             return;
         }
 
         const tareasGuardadas = JSON.parse(datos);
 
-        // Comprobamos que los datos tengan la estructura esperada.
         if (!Array.isArray(tareasGuardadas)) {
             throw new Error("Los datos no son un arreglo.");
         }
@@ -59,7 +59,6 @@ function cargarTareas() {
     }
 }
 
-// Guarda los cambios y actualiza la pantalla.
 function guardarYMostrar(textoMensaje) {
     mostrarTareas();
 
@@ -131,17 +130,42 @@ function eliminarTarea(id) {
     guardarYMostrar("Tarea eliminada y cambios guardados.");
 }
 
+// Selecciona las tareas que cumplen ambos criterios.
+function obtenerTareasVisibles() {
+    const busqueda = campoBusqueda.value.trim().toLowerCase();
+    const estado = filtroEstado.value;
+
+    return tareas.filter((tarea) => {
+        const coincideTitulo = tarea.titulo
+            .toLowerCase()
+            .includes(busqueda);
+
+        const coincideEstado =
+            estado === "todas" ||
+            (estado === "pendientes" && !tarea.completada) ||
+            (estado === "completadas" && tarea.completada);
+
+        return coincideTitulo && coincideEstado;
+    });
+}
+
 function mostrarTareas() {
     listaTareas.replaceChildren();
 
-    if (tareas.length === 0) {
+    const tareasVisibles = obtenerTareasVisibles();
+
+    if (tareasVisibles.length === 0) {
         const aviso = document.createElement("li");
-        aviso.textContent = "Todavía no tienes tareas.";
+
+        aviso.textContent = tareas.length === 0
+            ? "Todavía no tienes tareas."
+            : "No hay tareas que coincidan con la búsqueda y el filtro.";
+
         listaTareas.appendChild(aviso);
         return;
     }
 
-    tareas.forEach((tarea) => {
+    tareasVisibles.forEach((tarea) => {
         const elemento = document.createElement("li");
 
         const texto = document.createElement("p");
@@ -245,6 +269,11 @@ formulario.addEventListener("submit", (evento) => {
     campoTitulo.focus();
 });
 
-// Primero recuperamos los datos y después los mostramos.
+// Actualizamos la lista mientras se escribe.
+campoBusqueda.addEventListener("input", mostrarTareas);
+
+// Actualizamos la lista al seleccionar otro estado.
+filtroEstado.addEventListener("change", mostrarTareas);
+
 cargarTareas();
 mostrarTareas();

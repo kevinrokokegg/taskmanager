@@ -123,3 +123,29 @@ footer {
         font-size: 28px;
     }
 }
+/* Espacio entre los controles de búsqueda y filtro */
+.controles {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.controles label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* Separación visual entre tareas y botones */
+#lista-tareas li {
+    padding: 16px 0;
+    border-bottom: 1px solid #e2e8f0;
+    overflow-wrap: anywhere;
+}
+
+#lista-tareas li:last-child {
+    border-bottom: none;
+}
+
+#lista-tareas button {
+    margin: 4px 8px 4px 0;
+}
