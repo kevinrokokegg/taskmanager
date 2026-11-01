@@ -7,18 +7,73 @@ const mensaje = document.getElementById("mensaje");
 const tituloFormulario = document.getElementById("titulo-formulario");
 const botonGuardar = formulario.querySelector('button[type="submit"]');
 
-// Creamos un botón para cancelar la edición.
 const botonCancelar = document.createElement("button");
 botonCancelar.type = "button";
 botonCancelar.textContent = "Cancelar edición";
 botonCancelar.hidden = true;
 formulario.appendChild(botonCancelar);
 
-// Datos de la aplicación.
+// Nombre con el que guardaremos los datos en el navegador.
+const CLAVE_STORAGE = "taskmanager_tareas";
+
 let tareas = [];
 let idEnEdicion = null;
 
-// Devuelve el formulario al modo de creación.
+// Recupera las tareas al abrir la página.
+function cargarTareas() {
+    try {
+        const datos = localStorage.getItem(CLAVE_STORAGE);
+
+        // null significa que todavía no hay datos guardados.
+        if (datos === null) {
+            return;
+        }
+
+        const tareasGuardadas = JSON.parse(datos);
+
+        // Comprobamos que los datos tengan la estructura esperada.
+        if (!Array.isArray(tareasGuardadas)) {
+            throw new Error("Los datos no son un arreglo.");
+        }
+
+        const sonValidas = tareasGuardadas.every((tarea) => {
+            return tarea !== null &&
+                typeof tarea === "object" &&
+                typeof tarea.id === "string" &&
+                typeof tarea.titulo === "string" &&
+                tarea.titulo.trim() !== "" &&
+                ["alta", "media", "baja"].includes(tarea.prioridad) &&
+                typeof tarea.completada === "boolean" &&
+                Number.isFinite(tarea.fechaCreacion);
+        });
+
+        if (!sonValidas) {
+            throw new Error("Hay tareas con datos inválidos.");
+        }
+
+        tareas = tareasGuardadas;
+    } catch (error) {
+        mensaje.textContent =
+            "No se pudieron recuperar las tareas guardadas.";
+        console.error(error);
+    }
+}
+
+// Guarda los cambios y actualiza la pantalla.
+function guardarYMostrar(textoMensaje) {
+    mostrarTareas();
+
+    try {
+        localStorage.setItem(CLAVE_STORAGE, JSON.stringify(tareas));
+        mensaje.textContent = textoMensaje;
+    } catch (error) {
+        mensaje.textContent =
+            "El cambio se hizo en pantalla, pero no pudo guardarse. " +
+            "Se perderá al recargar.";
+        console.error(error);
+    }
+}
+
 function reiniciarFormulario() {
     idEnEdicion = null;
     formulario.reset();
@@ -27,7 +82,6 @@ function reiniciarFormulario() {
     botonCancelar.hidden = true;
 }
 
-// Carga una tarea en el formulario para editarla.
 function editarTarea(id) {
     const tarea = tareas.find((tarea) => tarea.id === id);
 
@@ -38,23 +92,19 @@ function editarTarea(id) {
     idEnEdicion = id;
     campoTitulo.value = tarea.titulo;
     campoPrioridad.value = tarea.prioridad;
-
     tituloFormulario.textContent = "Editar tarea";
     botonGuardar.textContent = "Guardar cambios";
     botonCancelar.hidden = false;
-
     mensaje.textContent = "Modifica los datos y pulsa Guardar cambios.";
     campoTitulo.focus();
 }
 
-// Cancela sin modificar los datos de la tarea.
 botonCancelar.addEventListener("click", () => {
     reiniciarFormulario();
     mensaje.textContent = "Edición cancelada.";
     campoTitulo.focus();
 });
 
-// Cambia entre completada y pendiente.
 function cambiarEstado(id) {
     const tarea = tareas.find((tarea) => tarea.id === id);
 
@@ -63,27 +113,24 @@ function cambiarEstado(id) {
     }
 
     tarea.completada = !tarea.completada;
-    mostrarTareas();
 
-    mensaje.textContent = tarea.completada
-        ? "Tarea completada."
-        : "Tarea marcada como pendiente.";
+    guardarYMostrar(
+        tarea.completada
+            ? "Tarea completada y guardada."
+            : "Tarea marcada como pendiente y guardada."
+    );
 }
 
-// Elimina una tarea.
 function eliminarTarea(id) {
     tareas = tareas.filter((tarea) => tarea.id !== id);
 
-    // Evita seguir editando una tarea que ya no existe.
     if (idEnEdicion === id) {
         reiniciarFormulario();
     }
 
-    mostrarTareas();
-    mensaje.textContent = "Tarea eliminada.";
+    guardarYMostrar("Tarea eliminada y cambios guardados.");
 }
 
-// Actualiza la lista en pantalla.
 function mostrarTareas() {
     listaTareas.replaceChildren();
 
@@ -148,7 +195,6 @@ function mostrarTareas() {
     });
 }
 
-// Crea una tarea o guarda la edición.
 formulario.addEventListener("submit", (evento) => {
     evento.preventDefault();
 
@@ -166,6 +212,8 @@ formulario.addEventListener("submit", (evento) => {
         return;
     }
 
+    let textoMensaje;
+
     if (idEnEdicion !== null) {
         const tarea = tareas.find(
             (tarea) => tarea.id === idEnEdicion
@@ -179,24 +227,24 @@ formulario.addEventListener("submit", (evento) => {
 
         tarea.titulo = titulo;
         tarea.prioridad = prioridad;
-
-        mensaje.textContent = "Tarea actualizada correctamente.";
+        textoMensaje = "Tarea actualizada y guardada.";
     } else {
-        const nuevaTarea = {
+        tareas.push({
             id: crypto.randomUUID(),
             titulo: titulo,
             prioridad: prioridad,
             completada: false,
             fechaCreacion: Date.now()
-        };
+        });
 
-        tareas.push(nuevaTarea);
-        mensaje.textContent = "Tarea agregada correctamente.";
+        textoMensaje = "Tarea creada y guardada.";
     }
 
-    mostrarTareas();
+    guardarYMostrar(textoMensaje);
     reiniciarFormulario();
     campoTitulo.focus();
 });
 
+// Primero recuperamos los datos y después los mostramos.
+cargarTareas();
 mostrarTareas();
