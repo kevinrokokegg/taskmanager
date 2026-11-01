@@ -4,9 +4,55 @@ const campoTitulo = document.getElementById("titulo-tarea");
 const campoPrioridad = document.getElementById("prioridad-tarea");
 const listaTareas = document.getElementById("lista-tareas");
 const mensaje = document.getElementById("mensaje");
+const tituloFormulario = document.getElementById("titulo-formulario");
+const botonGuardar = formulario.querySelector('button[type="submit"]');
 
-// Tareas almacenadas en memoria.
+// Creamos un botón para cancelar la edición.
+const botonCancelar = document.createElement("button");
+botonCancelar.type = "button";
+botonCancelar.textContent = "Cancelar edición";
+botonCancelar.hidden = true;
+formulario.appendChild(botonCancelar);
+
+// Datos de la aplicación.
 let tareas = [];
+let idEnEdicion = null;
+
+// Devuelve el formulario al modo de creación.
+function reiniciarFormulario() {
+    idEnEdicion = null;
+    formulario.reset();
+    tituloFormulario.textContent = "Nueva tarea";
+    botonGuardar.textContent = "Agregar tarea";
+    botonCancelar.hidden = true;
+}
+
+// Carga una tarea en el formulario para editarla.
+function editarTarea(id) {
+    const tarea = tareas.find((tarea) => tarea.id === id);
+
+    if (!tarea) {
+        return;
+    }
+
+    idEnEdicion = id;
+    campoTitulo.value = tarea.titulo;
+    campoPrioridad.value = tarea.prioridad;
+
+    tituloFormulario.textContent = "Editar tarea";
+    botonGuardar.textContent = "Guardar cambios";
+    botonCancelar.hidden = false;
+
+    mensaje.textContent = "Modifica los datos y pulsa Guardar cambios.";
+    campoTitulo.focus();
+}
+
+// Cancela sin modificar los datos de la tarea.
+botonCancelar.addEventListener("click", () => {
+    reiniciarFormulario();
+    mensaje.textContent = "Edición cancelada.";
+    campoTitulo.focus();
+});
 
 // Cambia entre completada y pendiente.
 function cambiarEstado(id) {
@@ -24,9 +70,15 @@ function cambiarEstado(id) {
         : "Tarea marcada como pendiente.";
 }
 
-// Elimina la tarea cuyo id coincide.
+// Elimina una tarea.
 function eliminarTarea(id) {
     tareas = tareas.filter((tarea) => tarea.id !== id);
+
+    // Evita seguir editando una tarea que ya no existe.
+    if (idEnEdicion === id) {
+        reiniciarFormulario();
+    }
+
     mostrarTareas();
     mensaje.textContent = "Tarea eliminada.";
 }
@@ -68,6 +120,14 @@ function mostrarTareas() {
             cambiarEstado(tarea.id);
         });
 
+        const botonEditar = document.createElement("button");
+        botonEditar.type = "button";
+        botonEditar.textContent = "Editar";
+
+        botonEditar.addEventListener("click", () => {
+            editarTarea(tarea.id);
+        });
+
         const botonEliminar = document.createElement("button");
         botonEliminar.type = "button";
         botonEliminar.textContent = "Eliminar";
@@ -76,12 +136,19 @@ function mostrarTareas() {
             eliminarTarea(tarea.id);
         });
 
-        elemento.append(texto, estado, botonEstado, botonEliminar);
+        elemento.append(
+            texto,
+            estado,
+            botonEstado,
+            botonEditar,
+            botonEliminar
+        );
+
         listaTareas.appendChild(elemento);
     });
 }
 
-// Crea una tarea al enviar el formulario.
+// Crea una tarea o guarda la edición.
 formulario.addEventListener("submit", (evento) => {
     evento.preventDefault();
 
@@ -99,21 +166,37 @@ formulario.addEventListener("submit", (evento) => {
         return;
     }
 
-    const nuevaTarea = {
-        id: crypto.randomUUID(),
-        titulo: titulo,
-        prioridad: prioridad,
-        completada: false,
-        fechaCreacion: Date.now()
-    };
+    if (idEnEdicion !== null) {
+        const tarea = tareas.find(
+            (tarea) => tarea.id === idEnEdicion
+        );
 
-    tareas.push(nuevaTarea);
+        if (!tarea) {
+            reiniciarFormulario();
+            mensaje.textContent = "La tarea ya no está disponible.";
+            return;
+        }
+
+        tarea.titulo = titulo;
+        tarea.prioridad = prioridad;
+
+        mensaje.textContent = "Tarea actualizada correctamente.";
+    } else {
+        const nuevaTarea = {
+            id: crypto.randomUUID(),
+            titulo: titulo,
+            prioridad: prioridad,
+            completada: false,
+            fechaCreacion: Date.now()
+        };
+
+        tareas.push(nuevaTarea);
+        mensaje.textContent = "Tarea agregada correctamente.";
+    }
+
     mostrarTareas();
-
-    formulario.reset();
+    reiniciarFormulario();
     campoTitulo.focus();
-    mensaje.textContent = "Tarea agregada correctamente.";
 });
 
-// Muestra el estado inicial de la lista.
 mostrarTareas();
