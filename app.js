@@ -1,4 +1,4 @@
-// Elementos de la página.
+// Elementos del HTML.
 const formulario = document.getElementById("formulario-tarea");
 const campoTitulo = document.getElementById("titulo-tarea");
 const campoPrioridad = document.getElementById("prioridad-tarea");
@@ -7,21 +7,24 @@ const mensaje = document.getElementById("mensaje");
 const tituloFormulario = document.getElementById("titulo-formulario");
 const botonGuardar = formulario.querySelector('button[type="submit"]');
 
-// Controles de búsqueda y filtro.
 const campoBusqueda = document.getElementById("buscar-tarea");
 const filtroEstado = document.getElementById("filtro-estado");
+const ordenTareas = document.getElementById("orden-tareas");
 
+// Botón para cancelar la edición.
 const botonCancelar = document.createElement("button");
 botonCancelar.type = "button";
 botonCancelar.textContent = "Cancelar edición";
 botonCancelar.hidden = true;
 formulario.appendChild(botonCancelar);
 
+// Datos de la aplicación.
 const CLAVE_STORAGE = "taskmanager_tareas";
 
 let tareas = [];
 let idEnEdicion = null;
 
+// Recupera las tareas guardadas en el navegador.
 function cargarTareas() {
     try {
         const datos = localStorage.getItem(CLAVE_STORAGE);
@@ -37,14 +40,16 @@ function cargarTareas() {
         }
 
         const sonValidas = tareasGuardadas.every((tarea) => {
-            return tarea !== null &&
+            return (
+                tarea !== null &&
                 typeof tarea === "object" &&
                 typeof tarea.id === "string" &&
                 typeof tarea.titulo === "string" &&
                 tarea.titulo.trim() !== "" &&
                 ["alta", "media", "baja"].includes(tarea.prioridad) &&
                 typeof tarea.completada === "boolean" &&
-                Number.isFinite(tarea.fechaCreacion);
+                Number.isFinite(tarea.fechaCreacion)
+            );
         });
 
         if (!sonValidas) {
@@ -55,10 +60,12 @@ function cargarTareas() {
     } catch (error) {
         mensaje.textContent =
             "No se pudieron recuperar las tareas guardadas.";
+
         console.error(error);
     }
 }
 
+// Actualiza la pantalla y guarda los cambios.
 function guardarYMostrar(textoMensaje) {
     mostrarTareas();
 
@@ -69,18 +76,22 @@ function guardarYMostrar(textoMensaje) {
         mensaje.textContent =
             "El cambio se hizo en pantalla, pero no pudo guardarse. " +
             "Se perderá al recargar.";
+
         console.error(error);
     }
 }
 
+// Devuelve el formulario al modo de creación.
 function reiniciarFormulario() {
     idEnEdicion = null;
     formulario.reset();
+
     tituloFormulario.textContent = "Nueva tarea";
     botonGuardar.textContent = "Agregar tarea";
     botonCancelar.hidden = true;
 }
 
+// Carga una tarea en el formulario para editarla.
 function editarTarea(id) {
     const tarea = tareas.find((tarea) => tarea.id === id);
 
@@ -91,19 +102,16 @@ function editarTarea(id) {
     idEnEdicion = id;
     campoTitulo.value = tarea.titulo;
     campoPrioridad.value = tarea.prioridad;
+
     tituloFormulario.textContent = "Editar tarea";
     botonGuardar.textContent = "Guardar cambios";
     botonCancelar.hidden = false;
+
     mensaje.textContent = "Modifica los datos y pulsa Guardar cambios.";
     campoTitulo.focus();
 }
 
-botonCancelar.addEventListener("click", () => {
-    reiniciarFormulario();
-    mensaje.textContent = "Edición cancelada.";
-    campoTitulo.focus();
-});
-
+// Alterna entre completada y pendiente.
 function cambiarEstado(id) {
     const tarea = tareas.find((tarea) => tarea.id === id);
 
@@ -120,6 +128,7 @@ function cambiarEstado(id) {
     );
 }
 
+// Elimina la tarea seleccionada.
 function eliminarTarea(id) {
     tareas = tareas.filter((tarea) => tarea.id !== id);
 
@@ -130,12 +139,13 @@ function eliminarTarea(id) {
     guardarYMostrar("Tarea eliminada y cambios guardados.");
 }
 
-// Selecciona las tareas que cumplen ambos criterios.
+// Aplica la búsqueda, el filtro y el ordenamiento.
 function obtenerTareasVisibles() {
     const busqueda = campoBusqueda.value.trim().toLowerCase();
     const estado = filtroEstado.value;
+    const orden = ordenTareas.value;
 
-    return tareas.filter((tarea) => {
+    const tareasVisibles = tareas.filter((tarea) => {
         const coincideTitulo = tarea.titulo
             .toLowerCase()
             .includes(busqueda);
@@ -147,6 +157,31 @@ function obtenerTareasVisibles() {
 
         return coincideTitulo && coincideEstado;
     });
+
+    const valorPrioridad = {
+        alta: 1,
+        media: 2,
+        baja: 3
+    };
+
+    // filter() creó un nuevo arreglo: ordenamos ese resultado.
+    tareasVisibles.sort((a, b) => {
+        if (orden === "antiguas") {
+            return a.fechaCreacion - b.fechaCreacion;
+        }
+
+        if (orden === "prioridad") {
+            return (
+                valorPrioridad[a.prioridad] -
+                    valorPrioridad[b.prioridad] ||
+                b.fechaCreacion - a.fechaCreacion
+            );
+        }
+
+        return b.fechaCreacion - a.fechaCreacion;
+    });
+
+    return tareasVisibles;
 }
 
 function mostrarTareas() {
@@ -157,9 +192,10 @@ function mostrarTareas() {
     if (tareasVisibles.length === 0) {
         const aviso = document.createElement("li");
 
-        aviso.textContent = tareas.length === 0
-            ? "Todavía no tienes tareas."
-            : "No hay tareas que coincidan con la búsqueda y el filtro.";
+        aviso.textContent =
+            tareas.length === 0
+                ? "Todavía no tienes tareas."
+                : "No hay tareas que coincidan con la búsqueda y el filtro.";
 
         listaTareas.appendChild(aviso);
         return;
@@ -251,6 +287,7 @@ formulario.addEventListener("submit", (evento) => {
 
         tarea.titulo = titulo;
         tarea.prioridad = prioridad;
+
         textoMensaje = "Tarea actualizada y guardada.";
     } else {
         tareas.push({
@@ -269,11 +306,16 @@ formulario.addEventListener("submit", (evento) => {
     campoTitulo.focus();
 });
 
-// Actualizamos la lista mientras se escribe.
-campoBusqueda.addEventListener("input", mostrarTareas);
+botonCancelar.addEventListener("click", () => {
+    reiniciarFormulario();
+    mensaje.textContent = "Edición cancelada.";
+    campoTitulo.focus();
+});
 
-// Actualizamos la lista al seleccionar otro estado.
+campoBusqueda.addEventListener("input", mostrarTareas);
 filtroEstado.addEventListener("change", mostrarTareas);
+ordenTareas.addEventListener("change", mostrarTareas);
+
 
 cargarTareas();
 mostrarTareas();
