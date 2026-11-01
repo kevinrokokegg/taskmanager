@@ -1,4 +1,4 @@
-/* Incluye bordes y relleno dentro del tamaño de cada elemento */
+/* Incluye bordes y relleno dentro del tamaño de cada elemento. */
 * {
     box-sizing: border-box;
 }
@@ -46,6 +46,29 @@ h2 {
     color: #1e3a8a;
 }
 
+/* Panel de métricas. */
+.metricas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.metricas p {
+    margin: 0;
+    padding: 16px;
+    background-color: #eff6ff;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metricas strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 28px;
+    color: #1e3a8a;
+}
+
+/* Formulario de creación y edición. */
 form {
     display: flex;
     flex-direction: column;
@@ -101,29 +124,7 @@ button:focus-visible {
     display: none;
 }
 
-#lista-tareas {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-footer {
-    text-align: center;
-    padding: 16px;
-    color: #475569;
-}
-
-/* Ajustes para pantallas pequeñas */
-@media (max-width: 600px) {
-    section {
-        padding: 16px;
-    }
-
-    header h1 {
-        font-size: 28px;
-    }
-}
-/* Espacio entre los controles de búsqueda y filtro */
+/* Búsqueda, filtros y ordenamiento. */
 .controles {
     display: grid;
     gap: 16px;
@@ -135,7 +136,13 @@ footer {
     margin-bottom: 6px;
 }
 
-/* Separación visual entre tareas y botones */
+/* Lista de tareas. */
+#lista-tareas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 #lista-tareas li {
     padding: 16px 0;
     border-bottom: 1px solid #e2e8f0;
@@ -148,4 +155,25 @@ footer {
 
 #lista-tareas button {
     margin: 4px 8px 4px 0;
+}
+
+footer {
+    text-align: center;
+    padding: 16px;
+    color: #475569;
+}
+
+/* Ajustes para pantallas pequeñas. */
+@media (max-width: 600px) {
+    section {
+        padding: 16px;
+    }
+
+    header h1 {
+        font-size: 28px;
+    }
+
+    .metricas {
+        grid-template-columns: 1fr;
+    }
 }

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
 </head>
+
 <body>
     <header>
         <h1>TaskManager</h1>
@@ -16,11 +17,33 @@
     </header>
 
     <main>
+        <section aria-labelledby="titulo-dashboard">
+            <h2 id="titulo-dashboard">Resumen de tareas</h2>
+
+            <div class="metricas" aria-live="polite">
+                <p>
+                    Total
+                    <strong id="total-tareas">0</strong>
+                </p>
+
+                <p>
+                    Pendientes
+                    <strong id="tareas-pendientes">0</strong>
+                </p>
+
+                <p>
+                    Completadas
+                    <strong id="tareas-completadas">0</strong>
+                </p>
+            </div>
+        </section>
+
         <section aria-labelledby="titulo-formulario">
             <h2 id="titulo-formulario">Nueva tarea</h2>
 
             <form id="formulario-tarea" novalidate>
                 <label for="titulo-tarea">Título de la tarea</label>
+
                 <input
                     type="text"
                     id="titulo-tarea"
@@ -30,6 +53,7 @@
                 >
 
                 <label for="prioridad-tarea">Prioridad</label>
+
                 <select id="prioridad-tarea" name="prioridad">
                     <option value="alta">Alta</option>
                     <option value="media" selected>Media</option>
@@ -48,6 +72,7 @@
             <div class="controles">
                 <div>
                     <label for="buscar-tarea">Buscar por título</label>
+
                     <input
                         type="search"
                         id="buscar-tarea"
@@ -57,6 +82,7 @@
 
                 <div>
                     <label for="filtro-estado">Filtrar por estado</label>
+
                     <select id="filtro-estado">
                         <option value="todas">Todas</option>
                         <option value="pendientes">Pendientes</option>
@@ -66,10 +92,17 @@
 
                 <div>
                     <label for="orden-tareas">Ordenar tareas</label>
+
                     <select id="orden-tareas">
-                        <option value="recientes">Más recientes primero</option>
-                        <option value="antiguas">Más antiguas primero</option>
-                        <option value="prioridad">Prioridad: alta, media, baja</option>
+                        <option value="recientes">
+                            Más recientes primero
+                        </option>
+                        <option value="antiguas">
+                            Más antiguas primero
+                        </option>
+                        <option value="prioridad">
+                            Prioridad: alta, media, baja
+                        </option>
                     </select>
                 </div>
             </div>
